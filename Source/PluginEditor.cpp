@@ -18,32 +18,44 @@ VibratopluginAudioProcessorEditor::VibratopluginAudioProcessorEditor (Vibratoplu
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (400, 300);
+    setSize (600, 350);
     
-    kBypass.setBounds(50,10,100,100);
+    kBypass.setBounds(250,10,200,50);
     addAndMakeVisible(kBypass);
     kBypass.setClickingTogglesState (true);
+    kBypass.setButtonText ("BYPASS VIBRATO : OFF");
     kBypass.onClick = [this] { toggleButtonClicked() ; };
         
-    kModulationWidthSlider.setBounds(0, 150, 150, 150);
+    
+    
+    kModulationWidthSlider.setBounds(150, 120, 150, 200);
     kModulationWidthSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
-    kModulationWidthSlider.setTextBoxStyle(Slider::TextBoxBelow, true, 60, 25);
-    kModulationWidthSlider.setRange(0.0f, 2.0f);
+    kModulationWidthSlider.setTextBoxStyle(Slider::TextBoxBelow, true, 150, 30);
+    kModulationWidthSlider.setRange(0.0f, 0.4f);
+    kModulationWidthSlider.setTextValueSuffix (" s");
+    
+    kModWidthLabel.setText("Modulation Width", dontSendNotification);
+    kModWidthLabel.attachToComponent(&kModulationWidthSlider, true);
 
-    kModulationWidthSlider.setValue(0.5f);
+    kModulationWidthSlider.setValue(0.1f);
     kModulationWidthSlider.addListener(this);
     addAndMakeVisible(kModulationWidthSlider);
 
-    kRateSlider.setBounds(200,150, 150, 150);
+    
+    
+    
+    kRateSlider.setBounds(400,120, 150, 200);
     kRateSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
-    kRateSlider.setTextBoxStyle(Slider::TextBoxBelow, true, 60, 25);
+    kRateSlider.setTextBoxStyle(Slider::TextBoxBelow, true, 150, 30);
     kRateSlider.setRange(0.0f, 14.0f);
+    kRateSlider.setTextValueSuffix(" Hz");
+    
+    kRateLabel.setText("Rate", dontSendNotification);
+    kRateLabel.attachToComponent(&kRateSlider, true);
 
-    kRateSlider.setValue(7.0f);
+    kRateSlider.setValue(2.0f);
     kRateSlider.addListener(this);
     addAndMakeVisible(kRateSlider);
-    
-    
     
 }
 
@@ -89,7 +101,7 @@ void VibratopluginAudioProcessorEditor::toggleButtonClicked()
     auto state = kBypass.getToggleState();
     String stateString = state ? "ON" : "OFF";
     Logger::outputDebugString ( stateString);
-    kBypass.setButtonText (stateString);
+    kBypass.setButtonText ("BYPASS VIBRATO : " + stateString);
     
     processor.toggleBypass(state);
     

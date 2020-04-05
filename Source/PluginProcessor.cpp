@@ -160,12 +160,13 @@ void VibratopluginAudioProcessor:: processBlock(AudioBuffer<float>& buffer, Midi
     // interleaved by keeping the same state.
     if (bypass)
     {
-        DBG("bypassed vibrato");
+        setRate(0.0f);
     }
     else
     {
-        pVibrato -> process(buffer.getArrayOfWritePointers(), buffer.getArrayOfWritePointers() , this -> getBlockSize());
+        
     }
+    pVibrato -> process(buffer.getArrayOfWritePointers(), buffer.getArrayOfWritePointers() , this -> getBlockSize());
 }
 
 //==============================================================================
@@ -200,17 +201,30 @@ AudioProcessor* JUCE_CALLTYPE createPluginFilter()
     return new VibratopluginAudioProcessor();
 }
 
-void VibratopluginAudioProcessor::setModWidth(double modWidth)
+void VibratopluginAudioProcessor::setModWidth(double paramModWidth)
 {
+    modWidth = paramModWidth;
     pVibrato -> setParam(CVibrato::kParamModWidthInS, static_cast<float> (modWidth));
 }
 
-void VibratopluginAudioProcessor::setRate(double rate)
+void VibratopluginAudioProcessor::setRate(double paramRate)
 {
+    rate = paramRate;
     pVibrato -> setParam(CVibrato::kParamModFreqInHz, static_cast<float> (rate));
 }
 
 void VibratopluginAudioProcessor::toggleBypass(bool state)
 {
     bypass = state;
+    
+    if(state)
+    {
+        callbackRate = rate;
+        setRate(0.0f);
+    }
+    else
+    {
+        rate = callbackRate;
+        setRate(rate);
+    }
 }
