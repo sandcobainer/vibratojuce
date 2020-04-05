@@ -56,11 +56,15 @@ public:
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
     
-    void setModWidth(float modWidth);
-    void setRate(float rate);
-
+    void setModWidth(double modWidth);
+    void setRate(double rate);
+    void processBlockBypassed(AudioBuffer<float>& buffer, MidiBuffer& midiMessages, bool state);
+    void toggleBypass(bool state);
+    
+    
 private:
     CVibrato *pVibrato = 0;
+    bool bypass = false;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VibratopluginAudioProcessor)
 };

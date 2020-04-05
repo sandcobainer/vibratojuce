@@ -135,8 +135,8 @@ Error_t CVibrato::setParam( VibratoParam_t eParam, float fParamValue )
         return kNotInitializedError;
     if (!isInParamRange(eParam, fParamValue))
         return kFunctionInvalidArgsError;
-
-    std::cout<<m_bIsInitialized;
+    
+    std::cout<<fParamValue << std::endl;
     
     switch (eParam)
     {
@@ -185,12 +185,10 @@ Error_t CVibrato::process( float **ppfInputBuffer, float **ppfOutputBuffer, int 
         float fOffset = m_pCLfo->getNext();
         for (int c = 0; c < m_iNumChannels; c++)
         {
-//            std::cout<< ppfInputBuffer[c]<<std::endl;
         m_ppCRingBuff[c]->putPostInc(ppfInputBuffer[c][i]);
 
             ppfOutputBuffer[c][i]   = m_ppCRingBuff[c]->get(fOffset);
             m_ppCRingBuff[c]->getPostInc(); // dummy call to keep write and read idx in sync
-//            std::cout<< ppfOutputBuffer[c]<<std::endl;
         }
     
     }

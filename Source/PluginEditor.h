@@ -28,11 +28,15 @@ public:
     void resized() override;
     
     void sliderValueChanged(Slider* slider) override;
+    void toggleButtonClicked();
 
 private:
     
     Slider kModulationWidthSlider;
     Slider kRateSlider;
+    ToggleButton kBypass;
+    
+    
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     VibratopluginAudioProcessor& processor;

@@ -137,7 +137,7 @@ bool VibratopluginAudioProcessor::isBusesLayoutSupported (const BusesLayout& lay
 }
 #endif
 
-void VibratopluginAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
+void VibratopluginAudioProcessor:: processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
     ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
@@ -158,8 +158,14 @@ void VibratopluginAudioProcessor::processBlock (AudioBuffer<float>& buffer, Midi
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
-        
-    pVibrato -> process(buffer.getArrayOfWritePointers(), buffer.getArrayOfWritePointers() , this -> getBlockSize());
+    if (bypass)
+    {
+        DBG("bypassed vibrato");
+    }
+    else
+    {
+        pVibrato -> process(buffer.getArrayOfWritePointers(), buffer.getArrayOfWritePointers() , this -> getBlockSize());
+    }
 }
 
 //==============================================================================
@@ -194,12 +200,17 @@ AudioProcessor* JUCE_CALLTYPE createPluginFilter()
     return new VibratopluginAudioProcessor();
 }
 
-void VibratopluginAudioProcessor::setModWidth(float modWidth)
+void VibratopluginAudioProcessor::setModWidth(double modWidth)
 {
-    pVibrato -> setParam(CVibrato::kParamModWidthInS, modWidth);
+    pVibrato -> setParam(CVibrato::kParamModWidthInS, static_cast<float> (modWidth));
 }
 
-void VibratopluginAudioProcessor::setRate(float rate)
+void VibratopluginAudioProcessor::setRate(double rate)
 {
-    pVibrato -> setParam(CVibrato::kParamModFreqInHz, rate);
+    pVibrato -> setParam(CVibrato::kParamModFreqInHz, static_cast<float> (rate));
+}
+
+void VibratopluginAudioProcessor::toggleBypass(bool state)
+{
+    bypass = state;
 }
