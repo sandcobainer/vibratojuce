@@ -31,7 +31,7 @@ VibratopluginAudioProcessorEditor::VibratopluginAudioProcessorEditor (Vibratoplu
     kModulationWidthSlider.setBounds(150, 120, 150, 200);
     kModulationWidthSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
     kModulationWidthSlider.setTextBoxStyle(Slider::TextBoxBelow, true, 150, 30);
-    kModulationWidthSlider.setRange(0.0f, 0.4f);
+    kModulationWidthSlider.setRange(0.0f, 0.2f); // Changed range from 0.4f -> 0.2
     kModulationWidthSlider.setTextValueSuffix (" s");
     
     kModWidthLabel.setText("Modulation Width", dontSendNotification);

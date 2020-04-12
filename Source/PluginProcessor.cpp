@@ -26,13 +26,16 @@ VibratopluginAudioProcessor::VibratopluginAudioProcessor()
 #endif
 {
 //    pVibrato -> resetInstance();
-    pVibrato -> createInstance(pVibrato);
+//    pVibrato -> createInstance(pVibrato);
+    CVibrato::createInstance(pVibrato);
 }
 
 VibratopluginAudioProcessor::~VibratopluginAudioProcessor()
 {
     pVibrato -> resetInstance();
-    pVibrato -> destroyInstance(pVibrato);
+//    pVibrato -> destroyInstance(pVibrato);
+    CVibrato::destroyInstance(pVibrato);
+
 }
 
 //==============================================================================
@@ -102,7 +105,6 @@ void VibratopluginAudioProcessor::prepareToPlay (double sampleRate, int samplesP
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-   
     pVibrato -> initInstance(2.0, 44100, 2);
     
 }
