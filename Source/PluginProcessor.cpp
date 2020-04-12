@@ -168,7 +168,7 @@ void VibratopluginAudioProcessor:: processBlock(AudioBuffer<float>& buffer, Midi
     {
         
     }
-    pVibrato -> process(buffer.getArrayOfWritePointers(), buffer.getArrayOfWritePointers() , this -> getBlockSize());
+    pVibrato -> process(const_cast<float**>(buffer.getArrayOfReadPointers()), buffer.getArrayOfWritePointers() , this -> getBlockSize());
 }
 
 //==============================================================================
