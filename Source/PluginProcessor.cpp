@@ -15,27 +15,29 @@
 //==============================================================================
 VibratopluginAudioProcessor::VibratopluginAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", AudioChannelSet::stereo(), true)
-                     #endif
-                       )
+: AudioProcessor (BusesProperties()
+#if ! JucePlugin_IsMidiEffect
+#if ! JucePlugin_IsSynth
+                  .withInput  ("Input",  AudioChannelSet::stereo(), true)
 #endif
+                  .withOutput ("Output", AudioChannelSet::stereo(), true)
+#endif
+                  ),
+#endif
+MaxModWidthInS(.01), RampLengthInS(3e-4), rate(5), modWidth(0.001), bypass(false)
+
 {
-//    pVibrato -> resetInstance();
-//    pVibrato -> createInstance(pVibrato);
+    //    pVibrato -> resetInstance();
+    //    pVibrato -> createInstance(pVibrato);
     CVibrato::createInstance(pVibrato);
 }
 
 VibratopluginAudioProcessor::~VibratopluginAudioProcessor()
 {
     pVibrato -> resetInstance();
-//    pVibrato -> destroyInstance(pVibrato);
+    //    pVibrato -> destroyInstance(pVibrato);
     CVibrato::destroyInstance(pVibrato);
-
+    
 }
 
 //==============================================================================
@@ -105,7 +107,17 @@ void VibratopluginAudioProcessor::prepareToPlay (double sampleRate, int samplesP
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-    pVibrato -> initInstance(2.0, 44100, 2);
+    smoothModWidth.reset(sampleRate, RampLengthInS);
+    smoothRate.reset(sampleRate, RampLengthInS);
+    smoothBypass.reset(sampleRate, RampLengthInS);
+    
+    smoothModWidth.setCurrentAndTargetValue(modWidth);
+    smoothRate.setCurrentAndTargetValue(rate);
+    
+    //    smoothBypass.setCurrentAndTargetValue(1 - bypass);
+    // Use this method as the place to do any pre-playback
+    // initialisation that you need..
+    pVibrato -> initInstance(MaxModWidthInS, (float)sampleRate, getTotalNumInputChannels());
     
 }
 
@@ -205,14 +217,16 @@ AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 
 void VibratopluginAudioProcessor::setModWidth(double paramModWidth)
 {
-    modWidth = paramModWidth;
-    pVibrato -> setParam(CVibrato::kParamModWidthInS, static_cast<float> (modWidth));
+    smoothModWidth.setTargetValue(paramModWidth);
+    //    modWidth = paramModWidth;
+    pVibrato -> setParam(CVibrato::kParamModWidthInS, static_cast<float> (smoothModWidth.getNextValue()));
 }
 
 void VibratopluginAudioProcessor::setRate(double paramRate)
 {
-    rate = paramRate;
-    pVibrato -> setParam(CVibrato::kParamModFreqInHz, static_cast<float> (rate));
+    smoothRate.setTargetValue(paramRate);
+    //    rate = paramRate;
+    pVibrato -> setParam(CVibrato::kParamModFreqInHz, static_cast<float> (smoothRate.getNextValue()));
 }
 
 void VibratopluginAudioProcessor::toggleBypass(bool state)

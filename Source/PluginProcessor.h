@@ -64,6 +64,15 @@ public:
     
 private:
     CVibrato *pVibrato = 0;
+    
+    const float MaxModWidthInS;
+    const float RampLengthInS;
+    
+    SmoothedValue<float, ValueSmoothingTypes::Linear>           smoothModWidth;
+    SmoothedValue<float, ValueSmoothingTypes::Linear>           smoothRate;
+    
+    SmoothedValue<float, ValueSmoothingTypes::Linear>           smoothBypass;
+    
     bool bypass = false;
     
     double rate;
