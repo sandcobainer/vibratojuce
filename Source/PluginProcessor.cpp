@@ -24,18 +24,30 @@ VibratopluginAudioProcessor::VibratopluginAudioProcessor()
 #endif
                   ),
 #endif
-MaxModWidthInS(.01), RampLengthInS(3e-4), rate(5), modWidth(0.001), bypass(false)
+MaxModWidthInS(0.002), RampLengthInS(3e-4), bypass(false),
+params(*this, nullptr, Identifier("VibratoParameters"),
+       {
+            std::make_unique<AudioParameterFloat> ( "modWidth",
+                                                    "Modulation Width",
+                                                    NormalisableRange <float> (0.0f, 0.002f,0.0001f),
+                                                     0.001f),
+            std::make_unique<AudioParameterFloat> ( "rate",
+                                                    "LFO Rate",
+                                                    0.0f,
+                                                    14.0f,
+                                                    8.0f)
+        })
 
 {
-    //    pVibrato -> resetInstance();
-    //    pVibrato -> createInstance(pVibrato);
     CVibrato::createInstance(pVibrato);
+    modWidthParameter = params.getRawParameterValue ("modWidth");
+    rateParameter  = params
+    .getRawParameterValue ("rate");
 }
 
 VibratopluginAudioProcessor::~VibratopluginAudioProcessor()
 {
     pVibrato -> resetInstance();
-    //    pVibrato -> destroyInstance(pVibrato);
     CVibrato::destroyInstance(pVibrato);
     
 }
@@ -107,14 +119,14 @@ void VibratopluginAudioProcessor::prepareToPlay (double sampleRate, int samplesP
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+    
     smoothModWidth.reset(sampleRate, RampLengthInS);
     smoothRate.reset(sampleRate, RampLengthInS);
     smoothBypass.reset(sampleRate, RampLengthInS);
     
-    smoothModWidth.setCurrentAndTargetValue(modWidth);
-    smoothRate.setCurrentAndTargetValue(rate);
+    smoothModWidth.setCurrentAndTargetValue(*modWidthParameter);
+    smoothRate.setCurrentAndTargetValue(*rateParameter);
     
-    //    smoothBypass.setCurrentAndTargetValue(1 - bypass);
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     pVibrato -> initInstance(MaxModWidthInS, (float)sampleRate, getTotalNumInputChannels());
@@ -157,6 +169,11 @@ void VibratopluginAudioProcessor:: processBlock(AudioBuffer<float>& buffer, Midi
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
+    smoothModWidth.setTargetValue(*modWidthParameter);
+    pVibrato -> setParam(CVibrato::kParamModWidthInS, static_cast<float> ( static_cast<int> (1 - bypass) * smoothModWidth.getNextValue()));
+    
+    smoothRate.setTargetValue(*rateParameter);
+    pVibrato -> setParam(CVibrato::kParamModFreqInHz, static_cast<float> (smoothRate.getNextValue()));
     // In case we have more outputs than inputs, this code clears any output
     // channels that didn't contain input data, (because these aren't
     // guaranteed to be empty - they may contain garbage).
@@ -172,14 +189,6 @@ void VibratopluginAudioProcessor:: processBlock(AudioBuffer<float>& buffer, Midi
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
-    if (bypass)
-    {
-        setRate(0.0f);
-    }
-    else
-    {
-        
-    }
     pVibrato -> process(const_cast<float**>(buffer.getArrayOfReadPointers()), buffer.getArrayOfWritePointers() , this -> getBlockSize());
 }
 
@@ -191,7 +200,7 @@ bool VibratopluginAudioProcessor::hasEditor() const
 
 AudioProcessorEditor* VibratopluginAudioProcessor::createEditor()
 {
-    return new VibratopluginAudioProcessorEditor (*this);
+    return new VibratopluginAudioProcessorEditor (*this, params);
 }
 
 //==============================================================================
@@ -200,12 +209,20 @@ void VibratopluginAudioProcessor::getStateInformation (MemoryBlock& destData)
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+    auto state = params.copyState();
+    std::unique_ptr<XmlElement> xml (state.createXml());
+    copyXmlToBinary (*xml, destData);
 }
 
 void VibratopluginAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+    std::unique_ptr<XmlElement> xmlState (getXmlFromBinary (data, sizeInBytes));
+ 
+    if (xmlState.get() != nullptr)
+        if (xmlState->hasTagName (params.state.getType()))
+            params.replaceState (ValueTree::fromXml (*xmlState));
 }
 
 //==============================================================================
@@ -215,32 +232,7 @@ AudioProcessor* JUCE_CALLTYPE createPluginFilter()
     return new VibratopluginAudioProcessor();
 }
 
-void VibratopluginAudioProcessor::setModWidth(double paramModWidth)
-{
-    smoothModWidth.setTargetValue(paramModWidth);
-    //    modWidth = paramModWidth;
-    pVibrato -> setParam(CVibrato::kParamModWidthInS, static_cast<float> (smoothModWidth.getNextValue()));
-}
-
-void VibratopluginAudioProcessor::setRate(double paramRate)
-{
-    smoothRate.setTargetValue(paramRate);
-    //    rate = paramRate;
-    pVibrato -> setParam(CVibrato::kParamModFreqInHz, static_cast<float> (smoothRate.getNextValue()));
-}
-
 void VibratopluginAudioProcessor::toggleBypass(bool state)
 {
     bypass = state;
-    
-    if(state)
-    {
-        callbackRate = rate;
-        setRate(0.0f);
-    }
-    else
-    {
-        rate = callbackRate;
-        setRate(rate);
-    }
 }

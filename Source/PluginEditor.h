@@ -16,18 +16,18 @@
 //==============================================================================
 /**
 */
-class VibratopluginAudioProcessorEditor  :  public AudioProcessorEditor,
-                                            public Slider::Listener
+class VibratopluginAudioProcessorEditor  :  public AudioProcessorEditor
 {
 public:
-    VibratopluginAudioProcessorEditor (VibratopluginAudioProcessor&);
+    typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
+    typedef AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
+    
+    VibratopluginAudioProcessorEditor (VibratopluginAudioProcessor&, AudioProcessorValueTreeState&);
     ~VibratopluginAudioProcessorEditor();
 
     //==============================================================================
     void paint (Graphics&) override;
     void resized() override;
-    
-    void sliderValueChanged(Slider* slider) override;
     void toggleButtonClicked();
 
 private:
@@ -37,6 +37,10 @@ private:
     ToggleButton kBypass;
     Label kModWidthLabel;
     Label kRateLabel;
+    
+    AudioProcessorValueTreeState& valueTreeState;
+    std::unique_ptr <SliderAttachment> kModWidthAttachment;
+    std::unique_ptr <SliderAttachment> kRateAttachment;
     
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.

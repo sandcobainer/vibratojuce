@@ -56,29 +56,23 @@ public:
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
     
-    void setModWidth(double modWidth);
-    void setRate(double rate);
     void processBlockBypassed(AudioBuffer<float>& buffer, MidiBuffer& midiMessages, bool state);
     void toggleBypass(bool state);
-    
-    
 private:
-    CVibrato *pVibrato = 0;
+    AudioProcessorValueTreeState params;
+    std::atomic<float>* modWidthParameter = nullptr;
+    std::atomic<float>* rateParameter  = nullptr;
+    
+    CVibrato *pVibrato = nullptr;
     
     const float MaxModWidthInS;
     const float RampLengthInS;
     
     SmoothedValue<float, ValueSmoothingTypes::Linear>           smoothModWidth;
     SmoothedValue<float, ValueSmoothingTypes::Linear>           smoothRate;
-    
     SmoothedValue<float, ValueSmoothingTypes::Linear>           smoothBypass;
     
     bool bypass = false;
-    
-    double rate;
-    double modWidth;
-    double callbackRate;
-    
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VibratopluginAudioProcessor)
 };

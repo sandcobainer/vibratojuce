@@ -136,7 +136,6 @@ Error_t CVibrato::setParam( VibratoParam_t eParam, float fParamValue )
     if (!isInParamRange(eParam, fParamValue))
         return kFunctionInvalidArgsError;
     
-    std::cout<<fParamValue << std::endl;
     
     switch (eParam)
     {
